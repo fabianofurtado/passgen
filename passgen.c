@@ -32,8 +32,7 @@ main( int argc, char *argv[] )
 {
   const char * valid_chars = VALID_CHARS;
   char *str, *endstr;
-  unsigned char i, j;
-  uint64_t pass_num, pass_size;
+  uint64_t i, j, pass_num, pass_size;
 
   if ( argc != 3 ) {
     fprintf( stderr,"Error! Argument not found!\n\n  "
@@ -102,12 +101,12 @@ main( int argc, char *argv[] )
 
   for ( i=0; i < pass_num; i++ ) {
     for ( j=0; j < pass_size; j++ ) {
-      passwd[j] = valid_chars[ ( rand() + (int)i + (int)j ) %
-                               (int)( sizeof( VALID_CHARS )-1 )];
+      passwd[j] = valid_chars[ ( (uint64_t)rand() + i + j ) %
+                               (uint64_t)( sizeof( VALID_CHARS )-1 ) ];
     }
     puts( passwd );
   }
   puts( "\nDone!" );
-  
+
   return EXIT_SUCCESS;
 }
