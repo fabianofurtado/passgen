@@ -18,8 +18,10 @@
 #include <unistd.h>
 
 
-#define VALID_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\
-0123456789.,-_@$%^*#?!<>=+;:~'|\"/\\[]{}()"
+#define VALID_CHARS "abcdefghijklmnopqrstuvwxyz" \
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                    "0123456789.,-_@$%^*#?!<>=+" \
+                    ";:~'|\"/\\[]{}()"
 
 #define PASSWD_MAX_SIZE  255
 
