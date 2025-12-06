@@ -8,31 +8,60 @@
  *                                                                             *
  * COMPILING: make                                                             *
  *                                                                             *
- * CHANGES:                                                                    *
- *                                                                             *
- * REF NO  VERSION DATE   WHO    DETAIL                                        *
- *                                                                             *
- *                                                                             *
  ******************************************************************************/
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 
 
 #define VALID_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\
 0123456789.,-_@$%^*#?!<>=+;:~'|\"/\\[]{}()"
 
+#define PASSWD_MAX_SIZE  255
+
+
+static bool
+gen_passwd( char * passwd, uint8_t pass_size )
+{
+  uint8_t byte;
+  FILE * f;
+  uint8_t i;
+
+  if ( NULL == ( f = fopen( "/dev/urandom", "rb" ) ) ) {
+    perror("Erro ao abrir /dev/urandom");
+    return false;
+  }
+
+  for ( i = 0 ; i < pass_size ; i++ ) {
+    if ( fread( &byte, 1, 1, f ) != 1 ) {
+      perror("Erro ao ler de /dev/urandom");
+      fclose( f );
+      return false;
+    }
+    passwd[i] = VALID_CHARS[byte % (sizeof(VALID_CHARS)-1)];
+  }
+
+  passwd[pass_size] = '\0';
+  fclose( f );
+
+  return true;
+}
+
 
 int
 main( int argc, char *argv[] )
 {
-  const char * valid_chars = VALID_CHARS;
-  char *str, *endstr;
-  uint64_t i, j, pass_num, pass_size;
+  char     *str,
+           *endstr;
+  uint8_t   pass_size,
+            ps_count;
+  uint64_t  pass_num,
+            pn_count;
+  char passwd[ PASSWD_MAX_SIZE ];
 
   if ( argc != 3 ) {
     fprintf( stderr,"Error! Argument not found!\n\n  "
@@ -48,7 +77,7 @@ main( int argc, char *argv[] )
 
   /* Check for various possible errors. */
   if ( errno != 0 ) {
-      fprintf( stderr, "strtoul()\n" );
+      fprintf( stderr, "Password size is not a valid number!\n" );
       return EXIT_FAILURE;
   }
 
@@ -63,6 +92,12 @@ main( int argc, char *argv[] )
   if ( pass_size < 8 ) {
     fprintf( stderr, "Error! Cannot generate passsords shorter than "
                      "8 characters!\n" );
+    return EXIT_FAILURE;
+  }
+
+  if ( pass_size > PASSWD_MAX_SIZE ) {
+    fprintf( stderr, "Error! Cannot generate passsords greater than "
+                     "%d characters!\n", PASSWD_MAX_SIZE );
     return EXIT_FAILURE;
   }
 
@@ -90,23 +125,17 @@ main( int argc, char *argv[] )
     return EXIT_FAILURE;
   }
 
-  char passwd[ pass_size + 1 ];
-  passwd[pass_size] = '\0';
-
   fprintf( stdout,
-           "Wait... generating %lu passwords with %lu digits:\n",
+           "# Wait... generating %lu passwords with %u digits:\n",
            pass_num, pass_size );
 
-  srand( (unsigned int)time(NULL) + (unsigned int)getpid() );
-
-  for ( i=0; i < pass_num; i++ ) {
-    for ( j=0; j < pass_size; j++ ) {
-      passwd[j] = valid_chars[ ( (uint64_t)rand() + i + j ) %
-                               (uint64_t)( sizeof( VALID_CHARS )-1 ) ];
+  for ( pn_count=0 ; pn_count < pass_num ; pn_count++ ) {
+    for ( ps_count=0 ; ps_count < pass_size ; ps_count++ ) {
+      if ( false == gen_passwd( passwd, pass_size ) )
+        return EXIT_FAILURE;
     }
-    puts( passwd );
+    printf("%.*s\n", PASSWD_MAX_SIZE, passwd);
   }
-  puts( "\nDone!" );
 
   return EXIT_SUCCESS;
 }
