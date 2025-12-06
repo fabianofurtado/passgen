@@ -38,14 +38,13 @@ gen_passwd( char * passwd, uint8_t pass_size )
 
   for ( i = 0 ; i < pass_size ; i++ ) {
     if ( fread( &byte, 1, 1, f ) != 1 ) {
-      perror("Erro ao ler de /dev/urandom");
+      perror("Erro ao ler de \"/dev/urandom\"");
       fclose( f );
       return false;
     }
-    passwd[i] = VALID_CHARS[byte % (sizeof(VALID_CHARS)-1)];
+    passwd[i] = VALID_CHARS[ byte % ( sizeof( VALID_CHARS )-1 ) ];
   }
 
-  passwd[pass_size] = '\0';
   fclose( f );
 
   return true;
